@@ -1,12 +1,12 @@
-import React, { useId } from "react";
+import { useId } from "react";
 
 interface InputBoxProps {
   label: string;
   amount: number;
   onAmountChange?: (value: number) => void;
+  currencyInfoKeys: string[];
+  selectCurrency: string;
   onCurrencyChange?: (value: string) => void;
-  currencyOptions?: string[];
-  selectCurrency?: string;
   amountDisable?: boolean;
   currencyDisable?: boolean;
   className?: string;
@@ -16,11 +16,11 @@ function InputBox({
   label,
   amount,
   onAmountChange,
+  currencyInfoKeys,
+  selectCurrency,
   onCurrencyChange,
-  currencyOptions = [],
-  selectCurrency = "usd",
-  amountDisable = false,
-  currencyDisable = false,
+  amountDisable,
+  currencyDisable,
   className = "",
 }: InputBoxProps) {
   const amountInputId = useId();
@@ -51,7 +51,7 @@ function InputBox({
           onChange={(e) => onCurrencyChange && onCurrencyChange(e.target.value)}
           disabled={currencyDisable}
         >
-          {currencyOptions.map((currency) => (
+          {currencyInfoKeys.map((currency) => (
             <option key={currency} value={currency}>
               {currency}
             </option>

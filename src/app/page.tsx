@@ -8,6 +8,7 @@ export default function Home() {
   const [numberAllowed, setNumberAllowed] = useState<boolean>(false);
   const [charAllowed, setCharAllowed] = useState<boolean>(false);
   let [password, setPassword] = useState<string>(""); //store password
+
   //"Once this input is rendered to the DOM, store a reference to the DOM node (the real <input>) in passwordRef.current."
   const passwordRef = useRef<HTMLInputElement>(null);
 

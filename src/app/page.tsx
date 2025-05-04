@@ -1,103 +1,124 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useCallback, useRef, useEffect, ChangeEvent } from "react";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [hasMounted, setHasMounted] = useState(false);
+  const [passLength, setPassLength] = useState<number>(8); //store password length
+  const [numberAllowed, setNumberAllowed] = useState<boolean>(false);
+  const [charAllowed, setCharAllowed] = useState<boolean>(false);
+  let [password, setPassword] = useState<string>(""); //store password
+  //"Once this input is rendered to the DOM, store a reference to the DOM node (the real <input>) in passwordRef.current."
+  const passwordRef = useRef<HTMLInputElement>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const passWordGenerator: Function = useCallback(() => {
+    let tempPassword: string = "";
+    let chars: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    if (numberAllowed) chars += "0123456789";
+    if (charAllowed) chars += "!@#$%^&*()_+";
+
+    for (let i = 0; i < passLength; i++) {
+      let randomChar = Math.floor(Math.random() * chars.length + 1);
+      tempPassword += chars.charAt(randomChar);
+    }
+    password = tempPassword; //set password to tempPassword
+    setPassword(password); //next time the component renders, password will be set to tempPassword
+  }, [passLength, numberAllowed, charAllowed, setPassword]);
+
+  const copyPasswordToClipboard: VoidFunction = useCallback(() => {
+    console.log(window.navigator.clipboard);
+
+    if (!passwordRef.current) {
+      alert("Password not generated yet");
+      return;
+    }
+
+    if (!navigator.clipboard) {
+      alert("Clipboard API not supported in Next");
+      return;
+    }
+
+    passwordRef.current.select();
+    passwordRef.current.setSelectionRange(0, 999);
+
+    navigator.clipboard
+      .writeText(passwordRef.current.value)
+      .then(() => alert("Password copied to clipboard"))
+      .catch((err) => {
+        console.error("Failed to copy:", err);
+        alert("Failed to copy password");
+      });
+  }, []);
+
+  useEffect(() => {
+    setHasMounted(true); // only runs on client
+  }, []);
+
+  useEffect(() => {
+    if (hasMounted) {
+      passWordGenerator(); // now this is safe
+    }
+  }, [hasMounted, passLength, numberAllowed, charAllowed, passWordGenerator]);
+
+  return (
+    <div className="w-full max-w-md mx-auto shadow-md rounded-lg px-4 py-3 my-8 bg-gray-800 text-orange-500">
+      <h1 className="text-white text-center my-3">Password generator</h1>
+      <div className="flex shadow rounded-lg overflow-hidden mb-4">
+        {/* Input and button container */}
+        <input
+          type="text"
+          value={password}
+          className="outline-none w-full py-1 px-3"
+          placeholder="Generated password"
+          readOnly
+          ref={passwordRef}
+        />
+        <button
+          type="button"
+          onClick={copyPasswordToClipboard}
+          className="outline-none bg-blue-700 text-white px-3 py-0.5 shrink-0"
+        >
+          copy
+        </button>
+      </div>
+      {/* Input slider with check box */}
+      <div className="flex text-sm gap-x-2">
+        <div className="flex items-center gap-x-1">
+          <input
+            type="range"
+            min={6}
+            max={100}
+            value={passLength}
+            className="cursor-pointer"
+            onChange={(e: ChangeEvent<HTMLInputElement>) => {
+              setPassLength(parseInt(e.target.value));
+            }}
+          />
+          <label>Length: {passLength}</label>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+        <div className="flex items-center gap-x-1">
+          <input
+            type="checkbox"
+            defaultChecked={numberAllowed}
+            id="numberInput"
+            onChange={(e: ChangeEvent<HTMLInputElement>) => {
+              setNumberAllowed((prev) => !prev);
+            }}
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
+          <label htmlFor="numberInput">Numbers</label>
+        </div>
+        <div className="flex items-center gap-x-1">
+          <input
+            type="checkbox"
+            defaultChecked={charAllowed}
+            id="characterInput"
+            onChange={() => {
+              setCharAllowed((prev) => !prev);
+            }}
           />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          <label htmlFor="characterInput">Characters</label>
+        </div>
+      </div>
     </div>
   );
 }
